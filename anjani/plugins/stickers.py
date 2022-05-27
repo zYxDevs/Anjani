@@ -47,8 +47,8 @@ class Sticker(plugin.Plugin):
 
         video = AsyncPath("downloads/stickers.webm")
         arg = (
-            f"ffmpeg -i {media} -ss 00:00:00 -to 00:00:03 -map 0:v -b 256k -fs 262144" + \
-            f" -c:v libvpx-vp9 -vf scale={width}:{height},fps=30 {video} -y"
+            f"ffmpeg -i {media} -ss 00:00:00 -to 00:00:03 -map 0:v -b 256k -fs 262144"
+            + f" -c:v libvpx-vp9 -vf scale={width}:{height},fps=30 {video} -y"
         )
         await util.system.run_command(*shlex.split(arg))
         await media.unlink()
@@ -182,10 +182,10 @@ class Sticker(plugin.Plugin):
             for i in emojiset:
                 if i and i in (getattr(emoji, e) for e in dir(emoji) if not e.startswith("_")):
                     set_emoji += i
-                if setas and setas != set_emoji:
-                    set_emoji = set_emoji[len(setas) :]
-        else:
-            set_emoji = "🤔"
+            if setas and setas != set_emoji:
+                set_emoji = set_emoji[len(setas) :]
+            else:
+                set_emoji = "🤔"
 
         packnum = int(packnum)
         author = ctx.author
