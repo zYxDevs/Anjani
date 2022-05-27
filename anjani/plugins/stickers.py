@@ -42,13 +42,13 @@ class Sticker(plugin.Plugin):
             height, width = 512, 512
         elif height > width:
             height, width = 512, -1
-        elif width < width:
+        elif width > height:
             height, width = -1, 512
 
-        video = AsyncPath("downloads/sickers.webm")
+        video = AsyncPath("downloads/stickers.webm")
         arg = (
-            f"ffmpeg -i {media} -ss 00:00:00 -to 00:00:03 -map 0:v -b 256k -fs 262144"
-            + f" -c:v libvpx-vp9 -vf scale={width}:{height},fps=30 {video} -y"
+            f"ffmpeg -i {media} -ss 00:00:00 -to 00:00:03 -map 0:v -b 256k -fs 262144" + \
+            f" -c:v libvpx-vp9 -vf scale={width}:{height},fps=30 {video} -y"
         )
         await util.system.run_command(*shlex.split(arg))
         await media.unlink()
@@ -59,7 +59,7 @@ class Sticker(plugin.Plugin):
         img = Image.open(str(image))
         scale = 512 / max(img.width, img.height)
         new_size = (int(img.width * scale), int(img.height * scale))
-        img = img.resize(new_size, Image.LANCZOS)
+        img = img.resize(new_size, Image.NEAREST)
         image_path = AsyncPath("downloads/sticker.png")
         img.save(image_path, "PNG")
         await image.unlink()
@@ -68,7 +68,7 @@ class Sticker(plugin.Plugin):
     async def _upload_media(
         self, sticker: str
     ) -> raw.types.message_media_document.MessageMediaDocument:
-        return await self.bot.client.send(
+        return await self.bot.client.invoke(
             raw.functions.messages.upload_media.UploadMedia(
                 peer=await self.bot.client.resolve_peer("stickers"),  # type: ignore
                 media=raw.types.input_media_uploaded_document.InputMediaUploadedDocument(
@@ -89,7 +89,7 @@ class Sticker(plugin.Plugin):
         self, author: int, pack_name: str, short_name: str, media: Any, emoji: str, set_type: str
     ):
         media = await self._upload_media(media)
-        return await self.bot.client.send(
+        return await self.bot.client.invoke(
             raw.functions.stickers.create_sticker_set.CreateStickerSet(
                 user_id=await self.bot.client.resolve_peer(author),  # type: ignore
                 title=pack_name,
@@ -111,7 +111,7 @@ class Sticker(plugin.Plugin):
 
     async def _add_sticker(self, short_name: str, media: Any, emoji: str):
         media = await self._upload_media(media)
-        return await self.bot.client.send(
+        return await self.bot.client.invoke(
             raw.functions.stickers.add_sticker_to_set.AddStickerToSet(
                 stickerset=raw.types.input_sticker_set_short_name.InputStickerSetShortName(
                     short_name=short_name
@@ -141,6 +141,8 @@ class Sticker(plugin.Plugin):
         set_emoji = ""
         if reply.photo or reply.document and "image" in reply.document.mime_type:
             resize = True
+        elif reply.document and "tgsticker" in reply.document.mime_type:
+            anim_setpack = True
         elif reply.animation or (
             reply.document
             and "video" in reply.document.mime_type
@@ -166,7 +168,7 @@ class Sticker(plugin.Plugin):
             return await self.text(chat.id, "sticker-media-notfound")
 
         packnum = 1
-        emojiset = ""
+        emojiset = None
         if len(ctx.args) == 2:
             emojiset, packnum = ctx.args
         elif len(ctx.args) == 1:
@@ -175,18 +177,17 @@ class Sticker(plugin.Plugin):
             else:
                 emojiset = ctx.input[0]
 
-        if emojiset:
+        if emojiset is not None:
             setas = set_emoji
             for i in emojiset:
                 if i and i in (getattr(emoji, e) for e in dir(emoji) if not e.startswith("_")):
                     set_emoji += i
                 if setas and setas != set_emoji:
                     set_emoji = set_emoji[len(setas) :]
-        if not emojiset:
+        else:
             set_emoji = "🤔"
 
         packnum = int(packnum)
-
         author = ctx.author
         if not author:  # sanity check
             return
@@ -212,7 +213,7 @@ class Sticker(plugin.Plugin):
         exist = False
         while True:
             try:
-                exist_pack = await self.bot.client.send(
+                exist_pack = await self.bot.client.invoke(
                     raw.functions.messages.get_sticker_set.GetStickerSet(
                         stickerset=raw.types.input_sticker_set_short_name.InputStickerSetShortName(
                             short_name=pack_name,
