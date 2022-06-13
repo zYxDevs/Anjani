@@ -109,11 +109,7 @@ class Greeting(plugin.Plugin):
                         continue
 
                     text, button = await self.welc_message(chat.id)
-                    if not text:
-                        string = await self.text(chat.id, "default-welcome", noformat=True)
-                    else:
-                        string = text
-
+                    string = text or await self.text(chat.id, "default-welcome", noformat=True)
                     formatted_text = self._build_text(string, new_member, chat)
 
                     if button:
@@ -351,17 +347,18 @@ class Greeting(plugin.Plugin):
         await ctx.respond(await self.text(chat.id, "view-welcome", setting, clean_service))
         await ctx.respond(
             text
-            if text
-            else (
-                "Empty, custom welcome message haven't set yet."
-                if not setting
-                else "Default:\n\n" + await self.text(chat.id, "default-welcome", noformat=True)
+            or (
+                "Default:\n\n"
+                + await self.text(chat.id, "default-welcome", noformat=True)
+                if setting
+                else "Empty, custom welcome message haven't set yet."
             ),
             mode="reply",
             reply_markup=button,
             parse_mode=parse_mode,
             disable_web_page_preview=True,
         )
+
         return None
 
     @command.filters(filters.admin_only)
@@ -390,11 +387,7 @@ class Greeting(plugin.Plugin):
             self.is_goodbye(chat.id), self.left_message(chat.id), self.clean_service(chat.id)
         )
 
-        if noformat:
-            parse_mode = ParseMode.DISABLED
-        else:
-            parse_mode = ParseMode.MARKDOWN
-
+        parse_mode = ParseMode.DISABLED if noformat else ParseMode.MARKDOWN
         await ctx.respond(await self.text(chat.id, "view-goodbye", setting, clean_service))
         await ctx.respond(
             text,

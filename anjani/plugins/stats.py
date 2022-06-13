@@ -27,10 +27,11 @@ USEC_PER_DAY = USEC_PER_HOUR * 24
 
 
 def _calc_pct(num1: int, num2: int) -> str:
-    if not num2:
-        return "0"
-
-    return "{:.1f}".format((num1 / num2) * 100).rstrip("0").rstrip(".")
+    return (
+        "{:.1f}".format((num1 / num2) * 100).rstrip("0").rstrip(".")
+        if num2
+        else "0"
+    )
 
 
 def _calc_ph(stat: int, uptime: int) -> str:

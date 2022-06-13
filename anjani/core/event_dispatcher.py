@@ -160,8 +160,7 @@ class EventDispatcher(MixinBase):
         if wait:
             await asyncio.wait(tasks)
             for task in tasks:
-                err = task.exception()  # Handle the future exception
-                if err:
+                if err := task.exception():
                     dispatcher_error = EventDispatchError(
                         f"raised from {type(err).__name__}: {str(err)}"
                     ).with_traceback(err.__traceback__)

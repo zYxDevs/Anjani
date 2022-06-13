@@ -58,10 +58,15 @@ class Converter:
 class EntityConverter(Converter):  # skipcq: PYL-W0223
     @staticmethod
     def parse_entities(msg: types.Message, arg: str) -> Optional[types.User]:
-        for i in msg.entities:
-            if i.type == "text_mention" and msg.text[i.offset : i.offset + i.length] == arg:
-                return i.user
-        return None
+        return next(
+            (
+                i.user
+                for i in msg.entities
+                if i.type == "text_mention"
+                and msg.text[i.offset : i.offset + i.length] == arg
+            ),
+            None,
+        )
 
 
 class UserConverter(EntityConverter):
@@ -137,8 +142,7 @@ class ChatMemberConverter(EntityConverter):
     async def __call__(self, ctx: Context, arg: str) -> Optional[types.ChatMember]:
         if arg.isdigit() or arg.startswith("@"):
             return await self.get_member(ctx.bot.client, ctx.chat.id, arg)
-        res = self.parse_entities(ctx.msg, arg)
-        if res:
+        if res := self.parse_entities(ctx.msg, arg):
             return await self.get_member(ctx.bot.client, ctx.chat.id, res.id)
 
         return None
@@ -153,9 +157,9 @@ CONVERTER_MAP: MutableMapping[Type[Any], Any] = {
 
 def _bool_converter(arg: str) -> Union[bool, BadBoolArgument]:
     arg = arg.lower()
-    if arg in ("yes", "true", "enable", "on", "1"):
+    if arg in {"yes", "true", "enable", "on", "1"}:
         return True
-    if arg in ("no", "false", "disable", "off", "0"):
+    if arg in {"no", "false", "disable", "off", "0"}:
         return False
     raise BadBoolArgument(f"Unrecognized argument of boolean '{arg}'")
 

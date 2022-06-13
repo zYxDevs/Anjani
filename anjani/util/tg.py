@@ -92,13 +92,12 @@ def build_button(buttons: Button) -> InlineKeyboardMarkup:
 
 def revert_button(button: Button) -> str:
     """Revert button format"""
-    res = ""
-    for btn in button:
-        if btn[2]:
-            res += f"\n[{btn[0]}](buttonurl://{btn[1]}:same)"
-        else:
-            res += f"\n[{btn[0]}](buttonurl://{btn[1]})"
-    return res
+    return "".join(
+        f"\n[{btn[0]}](buttonurl://{btn[1]}:same)"
+        if btn[2]
+        else f"\n[{btn[0]}](buttonurl://{btn[1]})"
+        for btn in button
+    )
 
 
 def parse_button(text: str) -> Tuple[str, Button]:
@@ -149,8 +148,7 @@ def get_message_info(msg: Message) -> Tuple[str, Types, Optional[str], Button]:
     buttons = []  # type: Button
 
     if msg.reply_to_message:
-        t = msg.reply_to_message.text or msg.reply_to_message.caption
-        if t:
+        if t := msg.reply_to_message.text or msg.reply_to_message.caption:
             text, buttons = parse_button(t.markdown)
 
         if msg.reply_to_message.text:
@@ -241,9 +239,10 @@ async def get_chat_admins(
 ) -> AsyncGenerator[ChatMember, None]:
     member: ChatMember
     async for member in client.get_chat_members(chat, filter=ChatMembersFilter.ADMINISTRATORS):  # type: ignore
-        if member.status in {ChatMemberStatus.ADMINISTRATOR, ChatMemberStatus.OWNER}:
-            if exclude_bot and member.user.is_bot:
-                continue
+        if member.status in {
+            ChatMemberStatus.ADMINISTRATOR,
+            ChatMemberStatus.OWNER,
+        } and (not exclude_bot or not member.user.is_bot):
             yield member
 
 

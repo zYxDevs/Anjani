@@ -153,9 +153,8 @@ class CommandDispatcher(MixinBase):
                     if inspect.iscoroutinefunction(cmd.filters.__call__):
                         if not await cmd.filters(client, message):
                             return False
-                    else:
-                        if not await util.run_sync(cmd.filters, client, message):
-                            return False
+                    elif not await util.run_sync(cmd.filters, client, message):
+                        return False
 
                 message.command = parts
                 return True

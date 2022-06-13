@@ -52,18 +52,15 @@ class Backups(plugin.Plugin):
             if not result:
                 continue
 
-            data.update(result)
+            data |= result
 
         if len(data) <= 1:
             return await self.text(chat.id, "backup-null")
 
         await file.write_text(json.dumps(data, indent=2))
 
-        saved = ""
         del data["chat_id"]
-        for key in data:
-            saved += f"\n× `{key}`"
-
+        saved = "".join(f"\n× `{key}`" for key in data)
         date = datetime.now().strftime("%H:%M - %d/%b/%Y")
         await asyncio.gather(
             ctx.msg.reply_document(
@@ -81,7 +78,7 @@ class Backups(plugin.Plugin):
         chat = ctx.msg.chat
         reply_msg = ctx.msg.reply_to_message
 
-        if not reply_msg or (reply_msg and not reply_msg.document):
+        if not reply_msg or not reply_msg.document:
             return await self.text(chat.id, "no-backup-file")
 
         await ctx.respond(await self.text(chat.id, "restore-progress"))

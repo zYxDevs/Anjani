@@ -108,11 +108,7 @@ class Notes(plugin.Plugin):
         else:
             parse_mode = ParseMode.MARKDOWN
             btn_text = ""
-            if button:
-                keyb = build_button(button)
-            else:
-                keyb = button
-
+            keyb = build_button(button) if button else button
         types: int = note["type"]
         await self.bot.client.send_chat_action(chat.id, self.ACTION[types])
         try:

@@ -176,12 +176,11 @@ class Main(plugin.Plugin):
                 raise ValueError("Unable to find plugin name")
 
             text_lang = await self.text(
-                chat.id, f"{plug.group(1)}-help", username=self.bot.user.username
+                chat.id, f"{plug[1]}-help", username=self.bot.user.username
             )
-            text = (
-                f"Here is the help for the **{plug.group(1).capitalize()}** "
-                f"plugin:\n\n{text_lang}"
-            )
+
+            text = f"Here is the help for the **{plug[1].capitalize()}** plugin:\n\n{text_lang}"
+
             try:
                 await query.edit_message_text(
                     text,

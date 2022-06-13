@@ -134,7 +134,7 @@ class SpamPrediction(plugin.Plugin):
 
     @staticmethod
     def prob_to_string(value: float) -> str:
-        return str(value * 10 ** 2)[0:7]
+        return str(value * 10 ** 2)[:7]
 
     async def _predict(self, text: str) -> util.types.NDArray[float]:
         return await util.run_sync(self.model.predict_proba, [text])

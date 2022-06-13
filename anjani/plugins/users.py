@@ -168,7 +168,7 @@ class Users(plugin.Plugin):
         """User Info"""
         text = f"**{'Bot' if user.is_bot else 'User'} Info**\n\n"
         text += f"**ID:** `{user.id}`\n"
-        text += f"**DC ID: **`{user.dc_id if user.dc_id else 'N/A'}`\n"
+        text += f"**DC ID: **`{user.dc_id or 'N/A'}`\n"
         text += f"**First Name: **{user.first_name}\n"
         if user.last_name:
             text += f"**Last Name: **`{user.last_name}`\n"
@@ -281,10 +281,11 @@ class Users(plugin.Plugin):
                     return await self._chat_info(ctx, ctx.msg.reply_to_message.sender_chat)
 
             if not ctx.msg.reply_to_message:
-                if not ctx.author:
-                    return await self.get_text(ctx.chat.id, "err-anonymous")
-
-                return await self._user_info(ctx, ctx.author)
+                return (
+                    await self._user_info(ctx, ctx.author)
+                    if ctx.author
+                    else await self.get_text(ctx.chat.id, "err-anonymous")
+                )
 
             return
 

@@ -64,17 +64,13 @@ class AsyncBase(Generic[_DocumentType]):
         self.dispatch = dispatch
 
     def __eq__(self, other: Any) -> bool:
-        if (
-            isinstance(other, self.__class__)
-            and hasattr(self, "dispatch")
-            and hasattr(self, "dispatch")
-        ):
+        if isinstance(other, self.__class__) and hasattr(self, "dispatch"):
             return self.dispatch == other.dispatch
 
         return NotImplemented
 
     def __repr__(self) -> str:
-        return type(self).__name__ + f"({self.dispatch!r})"
+        return f"{type(self).__name__}({self.dispatch!r})"
 
 
 class AsyncBaseProperty(AsyncBase):
