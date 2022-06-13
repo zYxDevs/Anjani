@@ -112,13 +112,12 @@ class Reporting(plugin.Plugin):
                 )
             else:
                 await self.user_db.delete_one({"_id": chat_id})
+        elif setting:
+            await self.db.update_one(
+                {"chat_id": chat_id}, {"$set": {"setting": True}}, upsert=True
+            )
         else:
-            if setting:
-                await self.db.update_one(
-                    {"chat_id": chat_id}, {"$set": {"setting": True}}, upsert=True
-                )
-            else:
-                await self.db.delete_one({"chat_id": chat_id})
+            await self.db.delete_one({"chat_id": chat_id})
 
     async def is_active(self, uid: int, is_private: bool) -> bool:
         """Get current setting default to True"""
@@ -146,14 +145,15 @@ class Reporting(plugin.Plugin):
         private = chat.type == ChatType.PRIVATE
 
         if setting is None:
-            if not ctx.input:
-                return await self.text(
+            return (
+                await self.text(chat.id, "err-yes-no-args")
+                if ctx.input
+                else await self.text(
                     chat.id,
                     "report-setting" if private else "chat-report-setting",
                     await self.is_active(chat.id, private),
                 )
-
-            return await self.text(chat.id, "err-yes-no-args")
+            )
 
         _, member = await util.tg.fetch_permissions(self.bot.client, chat.id, ctx.author.id)
         if member.status not in {ChatMemberStatus.ADMINISTRATOR, ChatMemberStatus.OWNER}:

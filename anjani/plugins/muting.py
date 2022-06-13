@@ -54,21 +54,23 @@ class Muting(plugin.Plugin):
             if ctx.args and not ctx.args[0].endswith(("s", "m", "h")):
                 return await self.text(chat_id, "no-mute-user")
 
-            if ctx.msg.reply_to_message and ctx.msg.reply_to_message.from_user:
-                try:
-                    member = await self.bot.client.get_chat_member(
-                        chat_id, ctx.msg.reply_to_message.from_user.id
-                    )
-                except UserNotParticipant:
-                    # User is not a participant in the chat (replying from channel discussion)
-                    user = await self.bot.client.get_users(ctx.msg.reply_to_message.from_user.id)
-                    if isinstance(user, list):
-                        user = user[0]
-
-                flag = ctx.args[0] if ctx.args else ""
-            else:
+            if (
+                not ctx.msg.reply_to_message
+                or not ctx.msg.reply_to_message.from_user
+            ):
                 return await self.text(chat_id, "no-mute-user")
 
+            try:
+                member = await self.bot.client.get_chat_member(
+                    chat_id, ctx.msg.reply_to_message.from_user.id
+                )
+            except UserNotParticipant:
+                # User is not a participant in the chat (replying from channel discussion)
+                user = await self.bot.client.get_users(ctx.msg.reply_to_message.from_user.id)
+                if isinstance(user, list):
+                    user = user[0]
+
+            flag = ctx.args[0] if ctx.args else ""
         if member is not None:
             user = member.user
             if util.tg.is_staff_or_admin(member):

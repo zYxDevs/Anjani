@@ -115,14 +115,8 @@ class AsyncChangeStream(AsyncBase):
 
     @property
     def alive(self) -> bool:
-        if not self.dispatch:
-            return True
-
-        return self.dispatch.alive
+        return self.dispatch.alive if self.dispatch else True
 
     @property
     def resume_token(self) -> Any:
-        if self.dispatch:
-            return self.dispatch.resume_token
-
-        return None
+        return self.dispatch.resume_token if self.dispatch else None

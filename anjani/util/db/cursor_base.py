@@ -73,10 +73,7 @@ class AsyncCursorBase(AsyncBase, Generic[_DocumentType]):
     ) -> None:
         super().__init__(cursor)
 
-        if collection:
-            self.collection = collection
-        else:
-            self.collection = cursor.collection
+        self.collection = collection or cursor.collection
         self.started = False
         self.closed = False
 
@@ -124,11 +121,7 @@ class AsyncCursorBase(AsyncBase, Generic[_DocumentType]):
             if future.done():
                 return
 
-            if length is None:
-                n = result
-            else:
-                n = min(length - len(the_list), result)
-
+            n = result if length is None else min(length - len(the_list), result)
             i = 0
             while i < n:
                 the_list.append(self._data().popleft())
@@ -192,9 +185,7 @@ class AsyncCursorBase(AsyncBase, Generic[_DocumentType]):
 
     @property
     def alive(self) -> bool:
-        if not self.dispatch:
-            return True
-        return self.dispatch.alive
+        return self.dispatch.alive if self.dispatch else True
 
     @property
     def cursor_id(self) -> Optional[int]:

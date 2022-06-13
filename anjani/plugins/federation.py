@@ -215,12 +215,12 @@ class Federation(plugin.Plugin):
         """Check user banned list"""
         query = {f"banned.{target}": {"$exists": True}}
         query_chat = {f"banned_chat.{target}": {"$exists": True}}
-        projection = {f"banned.{target}": 1, "name": 1, "chats": 1}
-        projection_chat = {f"banned_chat.{target}": 1, "name": 1, "chats": 1}
-
         if await self.db.count_documents(query) != 0:
+            projection = {f"banned.{target}": 1, "name": 1, "chats": 1}
             return self.db.find(query, projection=projection), False
         if await self.db.count_documents(query_chat) != 0:
+            projection_chat = {f"banned_chat.{target}": 1, "name": 1, "chats": 1}
+
             return self.db.find(query_chat, projection=projection_chat), True
         return None, False
 
@@ -517,10 +517,7 @@ class Federation(plugin.Plugin):
         text = await self.text(chat.id, "fed-admin-text", data["name"], owner.mention)
         if len(data.get("admins", [])) != 0:
             text += "\nAdmins:\n"
-            admins = []
-            for admin in data["admins"]:
-                admins.append(admin)
-
+            admins = list(data["admins"])
             for uid in admins:
                 try:
                     admin = await self.bot.client.get_users(uid)
@@ -542,10 +539,7 @@ class Federation(plugin.Plugin):
         reason: str,
         fed_data: Mapping[str, Any],
     ) -> str:
-        update = False
-        if str(target.id) in fed_data.get("banned", {}).keys():
-            update = True
-
+        update = str(target.id) in fed_data.get("banned", {}).keys()
         fullname = target.first_name + target.last_name if target.last_name else target.first_name
         await self.fban_user(fed_data["_id"], target.id, fullname=fullname, reason=reason)
 
@@ -578,10 +572,7 @@ class Federation(plugin.Plugin):
         reason: str,
         fed_data: Mapping[str, Any],
     ) -> str:
-        update = False
-        if str(target.id) in fed_data.get("banned_chat", {}).keys():
-            update = True
-
+        update = str(target.id) in fed_data.get("banned_chat", {}).keys()
         await self.fban_chat(fed_data["_id"], target.id, title=target.title, reason=reason)
 
         if update:

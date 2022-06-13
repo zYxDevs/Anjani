@@ -148,15 +148,14 @@ class SpamShield(plugin.Plugin):
         while True:
             try:
                 async with self.bot.http.get(
-                    f"https://api.cas.chat/check?user_id={user.id}"
-                ) as res:
+                                f"https://api.cas.chat/check?user_id={user.id}"
+                            ) as res:
                     data = await res.json()
                     if data["ok"]:
-                        reason = f"https://cas.chat/query?u={user.id}"
-                        return reason
+                        return f"https://cas.chat/query?u={user.id}"
 
                     return None
-            except (ContentTypeError, JSONDecodeError):
+            except ContentTypeError:
                 if retry == 5:
                     raise
 
@@ -191,7 +190,7 @@ class SpamShield(plugin.Plugin):
                     "$set": {
                         f"banned.{user.id}": {
                             "name": fullname,
-                            "reason": "Automated fban " + reason,
+                            "reason": f"Automated fban {reason}",
                             "time": datetime.now(),
                         }
                     }
@@ -220,12 +219,12 @@ class SpamShield(plugin.Plugin):
             banner = "[Combot Anti Spam](t.me/combot)"
             reason = f"[Link]({cas})"
         if sw:
-            if not banner:
-                banner = "[Spam Watch](t.me/SpamWatch)"
-                reason = sw["reason"]
-            else:
+            if banner:
                 banner += " & [Spam Watch](t.me/SpamWatch)"
                 reason += " & " + sw["reason"]
+            else:
+                banner = "[Spam Watch](t.me/SpamWatch)"
+                reason = sw["reason"]
         if user.is_scam:  # overwrite banner and reason if user is flagged by telegram
             banner = "Telegram Server"
             reason = "Flagged as a scammer."

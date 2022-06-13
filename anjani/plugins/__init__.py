@@ -1,4 +1,5 @@
 """Anjani plugin init"""
+
 # Copyright (C) 2020 - 2022  UserbotIndo Team, <https://github.com/userbotindo.git>
 #
 # This program is free software: you can redistribute it and/or modify
@@ -20,9 +21,10 @@ from pathlib import Path
 
 current_dir = str(Path(__file__).parent)
 subplugins = [
-    importlib.import_module("." + info.name, __name__)
+    importlib.import_module(f".{info.name}", __name__)
     for info in pkgutil.iter_modules([current_dir])
 ]
+
 
 try:
     _reload_flag: bool

@@ -40,13 +40,11 @@ class Admins(plugin.Plugin):
         if not ctx.msg.reply_to_message:
             return await self.text(ctx.msg.chat.id, "error-reply-to-message")
 
-        is_silent = True
-        if ctx.input and ctx.input in {
+        is_silent = not ctx.input or ctx.input not in {
             "notify",
             "loud",
             "violence",
-        }:
-            is_silent = False
+        }
 
         await ctx.msg.reply_to_message.pin(disable_notification=is_silent)
         return None

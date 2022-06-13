@@ -59,7 +59,7 @@ class Paste:
                         if not token:
                             continue
 
-                        self.__token = token.group(1)
+                        self.__token = token[1]
                         break
             if self.__token:
                 content["_csrf_token"] = self.__token
@@ -88,17 +88,19 @@ class Misc(plugin.Plugin):
         out_str += f"💬 **Message ID :** `{msg.forward_from_message_id or msg.id}`\n"
         if msg.from_user:
             out_str += f"🙋‍♂️ **From User ID :** `{msg.from_user.id}`\n"
-        file = (
-            msg.audio
-            or msg.animation
-            or msg.document
-            or msg.photo
-            or msg.sticker
-            or msg.voice
-            or msg.video_note
-            or msg.video
-        ) or None
-        if file:
+        if (
+            file := (
+                msg.audio
+                or msg.animation
+                or msg.document
+                or msg.photo
+                or msg.sticker
+                or msg.voice
+                or msg.video_note
+                or msg.video
+            )
+            or None
+        ):
             out_str += f"📄 **Media Type :** `{file.__class__.__name__}`\n"
             out_str += f"📄 **File ID :** `{file.file_id}`"
 
@@ -156,7 +158,7 @@ class Misc(plugin.Plugin):
                 return await self.text(
                     ctx.chat.id, "paste-succes", f"[{service}]({await paste.go(data)})"
                 )
-        except (JSONDecodeError, ContentTypeError, ClientConnectorError, KeyError):
+        except (ContentTypeError, ClientConnectorError, KeyError):
             return await self.text(ctx.chat.id, "paste-fail", service)
 
     @command.filters(filters.private)

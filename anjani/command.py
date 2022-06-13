@@ -264,10 +264,11 @@ class Context:
             action (`~pyrogram.types.ChatAction`, *Optional*):
                 Type of action to broadcast.
         """
-        if not self.chat:
-            return False
-
-        return await self.bot.client.send_chat_action(self.chat.id, action)
+        return (
+            await self.bot.client.send_chat_action(self.chat.id, action)
+            if self.chat
+            else False
+        )
 
     def action(self, action: ChatAction = ChatAction.TYPING) -> BotAction:
         """Returns a context manager that allows you to send a chat action
